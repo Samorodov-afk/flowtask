@@ -58,9 +58,15 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const { request } = event;
 
-  // Пропускаем запросы к внешним ресурсам (CDN) и не-GET
+  // Пропускаем запросы к внешним ресурсам (CDN), не-GET, и неподдерживаемые схемы
   const isExternal = request.url.startsWith('http') && !request.url.startsWith(self.location.origin);
-  if (isExternal || request.method !== 'GET') {
+  const isUnsupportedScheme = request.url.startsWith('chrome-extension:') || 
+                                request.url.startsWith('moz-extension:') || 
+                                request.url.startsWith('safari-extension:') ||
+                                request.url.startsWith('chrome:') ||
+                                request.url.startsWith('about:');
+  
+  if (isExternal || request.method !== 'GET' || isUnsupportedScheme) {
     return;
   }
 
@@ -71,7 +77,16 @@ self.addEventListener('fetch', (event) => {
     const networkFetch = fetch(request)
       .then(response => {
         if (response && response.status === 200 && response.type === 'basic') {
-          cache.put(request, response.clone());
+          // Проверяем что это не chrome-extension или другая неподдерживаемая схема
+          if (!request.url.startsWith('chrome-extension:') && 
+              !request.url.startsWith('moz-extension:') &&
+              !request.url.startsWith('safari-extension:')) {
+            try {
+              cache.put(request, response.clone());
+            } catch (error) {
+              console.log('Cache put error (ignored):', error);
+            }
+          }
         }
         return response;
       })

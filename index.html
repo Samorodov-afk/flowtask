@@ -24,21 +24,40 @@
         (function() {
             try {
                 const savedTheme = localStorage.getItem('flowTheme') || 'dark';
-                const body = document.body;
-                
-                if (savedTheme === 'auto') {
-                    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                    if (prefersDark) {
-                        body.className = 'dark-theme';
+                // Ждем пока body будет доступен
+                if (document.body) {
+                    const body = document.body;
+                    
+                    if (savedTheme === 'auto') {
+                        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                        if (prefersDark) {
+                            body.className = 'dark-theme';
+                        } else {
+                            body.className = 'light-theme';
+                        }
                     } else {
-                        body.className = 'light-theme';
+                        body.className = savedTheme + '-theme';
                     }
                 } else {
-                    body.className = savedTheme + '-theme';
+                    // Если body еще не загружен, ждем события DOMContentLoaded
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const body = document.body;
+                        if (body) {
+                            const savedTheme = localStorage.getItem('flowTheme') || 'dark';
+                            if (savedTheme === 'auto') {
+                                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                                body.className = prefersDark ? 'dark-theme' : 'light-theme';
+                            } else {
+                                body.className = savedTheme + '-theme';
+                            }
+                        }
+                    });
                 }
             } catch(e) {
                 // Если ошибка, оставляем дефолтную темную тему
-                document.body.className = 'dark-theme';
+                if (document.body) {
+                    document.body.className = 'dark-theme';
+                }
             }
         })();
     </script>
@@ -936,7 +955,12 @@
     <script src="https://cdn.jsdelivr.net/npm/flatpickr" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ru.js" crossorigin="anonymous"></script>
     <!-- date-fns -->
-    <script src="https://cdn.jsdelivr.net/npm/date-fns@2.30.0/index.min.js" crossorigin="anonymous"></script>
+    <!-- date-fns - закомментировано, используется только в некоторых местах с проверкой typeof -->
+    <!-- Если нужна полная функциональность, используйте локальную версию или ESM -->
+    <!-- <script type="module">
+        import * as dateFns from 'https://cdn.jsdelivr.net/npm/date-fns@2.30.0/+esm';
+        window.dateFns = dateFns;
+    </script> -->
     
     <!-- Модули (новый код) - загружаем первым -->
     <script type="module" src="js/app.js"></script>

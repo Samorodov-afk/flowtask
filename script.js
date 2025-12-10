@@ -735,6 +735,11 @@ function initAppAfterAuth() {
     checkDeadlineNotifications();
     updateProfileButton();
     
+    // Инициализируем валидацию кнопки добавления задачи
+    setTimeout(() => {
+        validateTaskInput();
+    }, 100);
+    
     // Запуск календаря после загрузки DOM
     setTimeout(() => {
         initFlatpickr();
@@ -2977,7 +2982,17 @@ function validateTaskInput() {
     const addTaskBtn = document.getElementById('add-task-btn');
     const errorEl = document.getElementById('task-input-error');
     
-    if (!taskInput || !addTaskBtn) return;
+    // Проверяем что элементы существуют и приложение видимо
+    if (!taskInput || !addTaskBtn) {
+        return;
+    }
+    
+    // Проверяем что app-container видим (пользователь авторизован)
+    const appContainer = document.getElementById('app-container');
+    if (appContainer && appContainer.style.display === 'none') {
+        // Приложение еще не показано, не валидируем
+        return;
+    }
     
     const text = taskInput.value.trim();
     const isValid = text.length > 0;
@@ -2986,6 +3001,7 @@ function validateTaskInput() {
         taskInput.classList.remove('error');
         if (errorEl) errorEl.textContent = '';
         addTaskBtn.disabled = false;
+        addTaskBtn.removeAttribute('disabled'); // Дополнительно убираем disabled
     } else {
         taskInput.classList.add('error');
         if (errorEl) errorEl.textContent = t('enterTaskText');
