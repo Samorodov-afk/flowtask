@@ -735,10 +735,44 @@ function initAppAfterAuth() {
     checkDeadlineNotifications();
     updateProfileButton();
     
+    // Принудительно активируем все кнопки после авторизации
+    activateAllButtons();
+    
     // Инициализируем валидацию кнопки добавления задачи
+    // Используем несколько попыток, так как элементы могут загружаться асинхронно
+    let attempts = 0;
+    const maxAttempts = 10;
+    const checkAndValidate = () => {
+        const taskInput = document.getElementById('task-input');
+        const addTaskBtn = document.getElementById('add-task-btn');
+        
+        if (taskInput && addTaskBtn) {
+            // Элементы найдены - убираем disabled и настраиваем валидацию
+            addTaskBtn.disabled = false;
+            addTaskBtn.removeAttribute('disabled');
+            addTaskBtn.classList.remove('disabled');
+            validateTaskInput();
+            
+            // Убеждаемся что обработчик input работает
+            if (!taskInput.hasAttribute('data-validated')) {
+                taskInput.setAttribute('data-validated', 'true');
+                taskInput.addEventListener('input', validateTaskInput);
+            }
+        } else if (attempts < maxAttempts) {
+            attempts++;
+            setTimeout(checkAndValidate, 100);
+        } else {
+            console.warn('Не удалось найти элементы task-input или add-task-btn после', maxAttempts, 'попыток');
+        }
+    };
+    
+    setTimeout(checkAndValidate, 50);
+    
+    // Дополнительная проверка через 500мс
     setTimeout(() => {
+        activateAllButtons();
         validateTaskInput();
-    }, 100);
+    }, 500);
     
     // Запуск календаря после загрузки DOM
     setTimeout(() => {
@@ -977,16 +1011,71 @@ function setupEventListeners() {
     const taskInput = document.getElementById('task-input');
     
     if (addTaskBtn) {
-        addTaskBtn.addEventListener('click', addTask);
+        // Убираем disabled при инициализации
+        addTaskBtn.disabled = false;
+        addTaskBtn.removeAttribute('disabled');
+        addTaskBtn.classList.remove('disabled');
+        
+        // Удаляем старые обработчики и добавляем новый
+        const newAddTaskBtn = addTaskBtn.cloneNode(true);
+        addTaskBtn.parentNode.replaceChild(newAddTaskBtn, addTaskBtn);
+        newAddTaskBtn.addEventListener('click', addTask);
+        
+        // Обновляем ссылку и активируем
+        const updatedBtn = document.getElementById('add-task-btn');
+        if (updatedBtn) {
+            updatedBtn.disabled = false;
+            updatedBtn.removeAttribute('disabled');
+            updatedBtn.classList.remove('disabled');
+        }
     }
     
     if (taskInput) {
-        taskInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && !document.getElementById('add-task-btn').disabled) {
-                addTask();
-            }
-        });
-        taskInput.addEventListener('input', validateTaskInput);
+        // Убираем disabled с кнопки
+        const btn = document.getElementById('add-task-btn');
+        if (btn) {
+            btn.disabled = false;
+            btn.removeAttribute('disabled');
+            btn.classList.remove('disabled');
+            console.log('✅ Кнопка активирована в setupEventListeners');
+        }
+        
+        // Удаляем старые обработчики если есть
+        const newTaskInput = taskInput.cloneNode(true);
+        taskInput.parentNode.replaceChild(newTaskInput, taskInput);
+        
+        const updatedTaskInput = document.getElementById('task-input');
+        if (updatedTaskInput) {
+            updatedTaskInput.addEventListener('keypress', (e) => {
+                const btn = document.getElementById('add-task-btn');
+                if (e.key === 'Enter' && btn && !btn.disabled) {
+                    addTask();
+                }
+            });
+            
+            // Добавляем обработчик input
+            updatedTaskInput.addEventListener('input', validateTaskInput);
+            updatedTaskInput.addEventListener('blur', validateTaskInput);
+            
+            // Вызываем валидацию сразу и активируем кнопку
+            setTimeout(() => {
+                validateTaskInput();
+                // Дополнительно активируем кнопку если в поле есть текст
+                const btn = document.getElementById('add-task-btn');
+                const input = document.getElementById('task-input');
+                if (btn && input) {
+                    // Если в поле есть текст - активируем кнопку
+                    if (input.value.trim().length > 0) {
+                        btn.disabled = false;
+                        btn.removeAttribute('disabled');
+                        btn.classList.remove('disabled');
+                    }
+                    // Убеждаемся что кнопка кликабельна (нет CSS блокировки)
+                    btn.style.pointerEvents = 'auto';
+                    btn.style.cursor = 'pointer';
+                }
+            }, 50);
+        }
     }
 
     // Приоритеты
@@ -2982,7 +3071,7 @@ function validateTaskInput() {
     const addTaskBtn = document.getElementById('add-task-btn');
     const errorEl = document.getElementById('task-input-error');
     
-    // Проверяем что элементы существуют и приложение видимо
+    // Проверяем что элементы существуют
     if (!taskInput || !addTaskBtn) {
         return;
     }
@@ -3000,12 +3089,74 @@ function validateTaskInput() {
     if (isValid) {
         taskInput.classList.remove('error');
         if (errorEl) errorEl.textContent = '';
+        // Активируем кнопку
         addTaskBtn.disabled = false;
-        addTaskBtn.removeAttribute('disabled'); // Дополнительно убираем disabled
+        addTaskBtn.removeAttribute('disabled');
+        addTaskBtn.classList.remove('disabled');
     } else {
-        taskInput.classList.add('error');
-        if (errorEl) errorEl.textContent = t('enterTaskText');
+        taskInput.classList.remove('error'); // Убираем ошибку при пустом поле (нормальное состояние)
+        if (errorEl) errorEl.textContent = '';
+        // Кнопка disabled только если поле пустое (нормальное поведение)
         addTaskBtn.disabled = true;
+    }
+}
+
+// Функция для принудительной активации всех кнопок после авторизации
+function activateAllButtons() {
+    console.log('🔧 activateAllButtons вызвана');
+    
+    const addTaskBtn = document.getElementById('add-task-btn');
+    if (addTaskBtn) {
+        // Принудительно активируем кнопку
+        addTaskBtn.disabled = false;
+        addTaskBtn.removeAttribute('disabled');
+        addTaskBtn.classList.remove('disabled');
+        
+        // Проверяем содержимое поля - если есть текст, кнопка должна быть активна
+        const taskInput = document.getElementById('task-input');
+        if (taskInput && taskInput.value.trim().length > 0) {
+            addTaskBtn.disabled = false;
+        }
+        
+        console.log('✅ Кнопка add-task-btn активирована', { 
+            disabled: addTaskBtn.disabled, 
+            hasDisabledAttr: addTaskBtn.hasAttribute('disabled'),
+            className: addTaskBtn.className,
+            inputValue: taskInput?.value?.trim().length || 0
+        });
+    } else {
+        console.warn('⚠️ Кнопка add-task-btn не найдена');
+    }
+    
+    // Активируем другие важные кнопки
+    const priorityBtns = document.querySelectorAll('.priority-btn');
+    priorityBtns.forEach(btn => {
+        btn.disabled = false;
+        btn.removeAttribute('disabled');
+    });
+    
+    const filterBtns = document.querySelectorAll('.filter-btn');
+    filterBtns.forEach(btn => {
+        btn.disabled = false;
+        btn.removeAttribute('disabled');
+    });
+    
+    // Активируем все кнопки в app-container (кроме специальных)
+    const appContainer = document.getElementById('app-container');
+    if (appContainer) {
+        const allButtons = appContainer.querySelectorAll('button');
+        allButtons.forEach(btn => {
+            // Не активируем кнопки которые должны быть disabled по логике
+            if (!btn.id.includes('cancel') && 
+                !btn.id.includes('close') && 
+                !btn.classList.contains('delete-btn') &&
+                !btn.hasAttribute('data-keep-disabled')) {
+                btn.disabled = false;
+                btn.removeAttribute('disabled');
+                btn.classList.remove('disabled');
+            }
+        });
+        console.log(`✅ Активировано ${allButtons.length} кнопок в app-container`);
     }
 }
 
