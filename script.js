@@ -2378,6 +2378,9 @@ function updateAllTexts() {
     // Обновляем лендинг
     updateLandingTexts();
     
+    // Обновляем label'ы в формах
+    updateFormLabels();
+    
     // Обновляем другие элементы интерфейса
     updateInterfaceTexts();
     
@@ -2427,54 +2430,76 @@ function updateLandingTexts() {
         registerNameLabel.textContent = t('name');
     }
     
-    const registerNameInput = document.getElementById('landing-register-name');
-    if (registerNameInput) registerNameInput.placeholder = t('enterName');
-    
-    const registerEmailLabel = document.querySelector('#landing-register-email')?.previousElementSibling;
-    if (registerEmailLabel && registerEmailLabel.tagName === 'LABEL') {
-        registerEmailLabel.textContent = t('email');
+    // Форма регистрации - обновляем все элементы более надежно
+    const registerForm = document.getElementById('landing-register-form');
+    if (registerForm) {
+        // Имя
+        const nameInput = document.getElementById('landing-register-name');
+        if (nameInput) {
+            nameInput.placeholder = t('enterName');
+            const nameLabel = nameInput.previousElementSibling;
+            if (nameLabel && nameLabel.tagName === 'LABEL') {
+                nameLabel.textContent = t('name');
+            }
+        }
+        
+        // Email
+        const emailInput = document.getElementById('landing-register-email');
+        if (emailInput) {
+            emailInput.placeholder = t('enterEmail');
+            const emailLabel = emailInput.previousElementSibling;
+            if (emailLabel && emailLabel.tagName === 'LABEL') {
+                emailLabel.textContent = t('email');
+            }
+        }
+        
+        // Пароль
+        const passwordInput = document.getElementById('landing-register-password');
+        if (passwordInput) {
+            passwordInput.placeholder = t('minPassword');
+            const passwordLabel = passwordInput.previousElementSibling;
+            if (passwordLabel && passwordLabel.tagName === 'LABEL') {
+                passwordLabel.textContent = t('password');
+            }
+        }
+        
+        // Подтверждение пароля
+        const passwordConfirmInput = document.getElementById('landing-register-password-confirm');
+        if (passwordConfirmInput) {
+            passwordConfirmInput.placeholder = t('repeatPassword');
+            const passwordConfirmLabel = passwordConfirmInput.previousElementSibling;
+            if (passwordConfirmLabel && passwordConfirmLabel.tagName === 'LABEL') {
+                passwordConfirmLabel.textContent = t('confirmPassword');
+            }
+        }
     }
-    
-    const registerEmailInput = document.getElementById('landing-register-email');
-    if (registerEmailInput) registerEmailInput.placeholder = t('enterEmail');
-    
-    // Обновляем метки паролей в форме регистрации - используем более надежный селектор
-    const registerPasswordLabel = document.querySelector('#landing-register-password')?.previousElementSibling;
-    if (registerPasswordLabel && registerPasswordLabel.tagName === 'LABEL') {
-        registerPasswordLabel.textContent = t('password');
-    }
-    
-    const registerPasswordInput = document.getElementById('landing-register-password');
-    if (registerPasswordInput) registerPasswordInput.placeholder = t('minPassword');
-    
-    const registerPasswordConfirmLabel = document.querySelector('#landing-register-password-confirm')?.previousElementSibling;
-    if (registerPasswordConfirmLabel && registerPasswordConfirmLabel.tagName === 'LABEL') {
-        registerPasswordConfirmLabel.textContent = t('confirmPassword');
-    }
-    
-    const registerPasswordConfirmInput = document.getElementById('landing-register-password-confirm');
-    if (registerPasswordConfirmInput) registerPasswordConfirmInput.placeholder = t('repeatPassword');
     
     const registerBtn = document.getElementById('landing-register-btn');
     if (registerBtn) registerBtn.innerHTML = `<i class="fas fa-rocket"></i> ${t('go')}`;
     
-    // Форма входа
-    const loginEmailLabel = document.querySelector('#landing-login-email')?.previousElementSibling;
-    if (loginEmailLabel && loginEmailLabel.tagName === 'LABEL') {
-        loginEmailLabel.textContent = t('email');
+    // Форма входа - обновляем все элементы
+    const loginForm = document.getElementById('landing-login-form');
+    if (loginForm) {
+        // Email
+        const loginEmailInput = document.getElementById('landing-login-email');
+        if (loginEmailInput) {
+            loginEmailInput.placeholder = t('enterEmail');
+            const loginEmailLabel = loginEmailInput.previousElementSibling;
+            if (loginEmailLabel && loginEmailLabel.tagName === 'LABEL') {
+                loginEmailLabel.textContent = t('email');
+            }
+        }
+        
+        // Пароль
+        const loginPasswordInput = document.getElementById('landing-login-password');
+        if (loginPasswordInput) {
+            loginPasswordInput.placeholder = t('enterPassword');
+            const loginPasswordLabel = loginPasswordInput.previousElementSibling;
+            if (loginPasswordLabel && loginPasswordLabel.tagName === 'LABEL') {
+                loginPasswordLabel.textContent = t('password');
+            }
+        }
     }
-    
-    const loginEmailInput = document.getElementById('landing-login-email');
-    if (loginEmailInput) loginEmailInput.placeholder = t('enterEmail');
-    
-    // Обновляем метку пароля в форме входа - используем более надежный селектор
-    const loginPasswordLabel = document.querySelector('#landing-login-password')?.previousElementSibling;
-    if (loginPasswordLabel && loginPasswordLabel.tagName === 'LABEL') {
-        loginPasswordLabel.textContent = t('password');
-    }
-    
-    const loginPasswordInput = document.getElementById('landing-login-password');
-    if (loginPasswordInput) loginPasswordInput.placeholder = t('enterPassword');
     
     const loginBtn = document.getElementById('landing-login-btn');
     if (loginBtn) loginBtn.innerHTML = `<i class="fas fa-sign-in-alt"></i> ${t('enter')}`;
@@ -2491,6 +2516,45 @@ function updateLandingTexts() {
     
     const mobileMenuBtn = document.getElementById('mobile-menu-btn');
     if (mobileMenuBtn) mobileMenuBtn.setAttribute('aria-label', t('openMenu'));
+}
+
+// Дополнительная функция для обновления всех label'ов в формах
+function updateFormLabels() {
+    // Обновляем все label'ы в форме регистрации
+    const registerForm = document.getElementById('landing-register-form');
+    if (registerForm) {
+        const labels = registerForm.querySelectorAll('label');
+        labels.forEach((label, index) => {
+            const input = label.nextElementSibling;
+            if (input) {
+                if (input.id === 'landing-register-name') {
+                    label.textContent = t('name');
+                } else if (input.id === 'landing-register-email') {
+                    label.textContent = t('email');
+                } else if (input.id === 'landing-register-password') {
+                    label.textContent = t('password');
+                } else if (input.id === 'landing-register-password-confirm') {
+                    label.textContent = t('confirmPassword');
+                }
+            }
+        });
+    }
+    
+    // Обновляем все label'ы в форме входа
+    const loginForm = document.getElementById('landing-login-form');
+    if (loginForm) {
+        const labels = loginForm.querySelectorAll('label');
+        labels.forEach((label) => {
+            const input = label.nextElementSibling;
+            if (input) {
+                if (input.id === 'landing-login-email') {
+                    label.textContent = t('email');
+                } else if (input.id === 'landing-login-password') {
+                    label.textContent = t('password');
+                }
+            }
+        });
+    }
 }
 
 // Обновление текстов модальных окон
@@ -4406,6 +4470,7 @@ window.addEventListener('beforeinstallprompt', (e) => {
 function initLanding() {
     // Обновляем тексты лендинга при инициализации
     updateLandingTexts();
+    updateFormLabels();
     const landingRegisterTab = document.getElementById('landing-register-tab');
     const landingLoginTab = document.getElementById('landing-login-tab');
     const landingRegisterForm = document.getElementById('landing-register-form');
@@ -4482,6 +4547,9 @@ function toggleLandingLanguage() {
     
     // Обновляем кнопку языка
     updateLandingLanguageButton();
+    
+    // Принудительно обновляем все label'ы в формах
+    updateFormLabels();
     
     // Обновляем категорию "Общие" если она есть
     const generalCategory = state.categories.find(cat => cat.id === 'general');
